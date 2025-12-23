@@ -1,53 +1,75 @@
-# **Node.js Dependency Compatibility Test**
+# TokenPresaleDApp – Dependency & Web3 Fix
 
-This test checks your ability to fix **broken or outdated dependencies** in a Node.js project. The project you receive will contain version conflicts and missing or incorrect packages. Your job is to make it run.
-
----
-
-## **What You Need to Do**
-
-### **1. Find the Problems**
-
-Look through the project and identify:
-
-* Outdated or incompatible versions
-* Missing or duplicated dependencies
-* Configuration mistakes
+## Overview
+This repository documents stabilizing and fixing a **Token Presale DApp** built with **Vite + React + Web3**.  
+Work focused on resolving dependency conflicts, aligning tooling with Vite, and fixing a critical **MetaMask wallet connection UI state** issue that can block presale flows.
 
 ---
 
-### **2. Fix the Dependencies**
-
-Update the dependency file so the project:
-
-* Installs without errors
-* Runs cleanly
-* Uses compatible versions
-
----
-
-### **3. Show That It Works**
-
-After fixing everything:
-
-* Provide a **short script** that proves the project runs
-  (e.g., start a small server, run a simple build, deploy a basic module, or make a minimal Web3/API call)
+## Issues Identified
+- Dependency conflicts and unused packages causing install/build failures
+- Jest configured in a Vite-based project (mismatched toolchain)
+- MetaMask connection could succeed, but the UI state did not reliably reflect the connected wallet
+- “Connect Wallet” remained enabled when it should be disabled
+- Presale flow blocked due to incorrect/unsynchronized wallet state handling
 
 ---
 
-## **What to Submit**
+## Dependency Updates
 
-1. **Your fixed `package.json` file**
-2. **A small codebase** (only the files needed to run your test)
-3. **Your test script** that confirms everything works
+### Removed Dependencies
+The following packages were removed to eliminate conflicts and unused tooling:
+
+- `mdbreact`
+- `@testing-library/jest-dom`
+- `@testing-library/react`
+- `@testing-library/user-event`
+- `vite-plugin-node-polyfills`
+- `yarn`
+- Unused `prepare` script
 
 ---
 
-## **Goal**
+### Updated / Aligned Dependencies
+The following dependencies were updated/aligned to ensure compatibility and a stable build:
 
-Show that you can quickly:
+- `react` → aligned to a Vite-compatible version
+- `react-dom` → aligned with the React version
+- `@vitejs/plugin-react` → aligned for stable Vite integration
+- `test` script → changed from `jest` to `vitest`
 
-* Spot dependency issues
-* Fix version conflicts
-* Make a broken Node.js project work again
+```json
+"test": "vitest"
+```
+
+---
+
+##  Show That It Works
+
+Run the commands below on Linux to confirm the project installs, builds, and tests successfully:
+
+```sh
+npm install
+npm run smoke
+```
+
+`npm run start` performs a minimal “proof run” by executing:
+- `vite build` (confirms the app builds)
+- `vitest` (confirms the test runner works)
+
+---
+
+## What to Submit
+
+1. **Fixed `package.json`**
+2. **Small codebase** (only files required to run the proof)
+3. **Proof script** (the smoke test) and the command used to run it
+
+---
+
+## Goal
+Demonstrate the ability to:
+- Spot dependency issues quickly
+- Fix version/tooling conflicts
+- Restore a broken Node.js/Vite project to a working state
 

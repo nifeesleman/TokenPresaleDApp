@@ -10,7 +10,7 @@ module.exports = {
       host: '127.0.0.1',
       port: 7545,
       chainId: 1337,
-      network_id: 1337,
+      network_id: '*',
       deploymentPollingInterval: 10,
     },
   },

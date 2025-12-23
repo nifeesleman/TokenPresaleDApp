@@ -5,7 +5,7 @@ import Unauthenticated from './Unauthenticated';
 function Account() {
   const { library, account } = useWeb3React();
 
-  if (library) return <Authenticated library={library} account={account} />;
+  if (account) return <Authenticated library={library} account={account} />;
 
   return <Unauthenticated />;
 }

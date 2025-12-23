@@ -22,15 +22,23 @@ import { useWalletConnector } from './WalletConnector.jsx';
 const resetLocalStorage = () => {
   localStorage.removeItem('wallet');
   localStorage.removeItem('connected');
+  // WalletConnect v1 persists its session under these keys
+  localStorage.removeItem('walletconnect');
+  localStorage.removeItem('WALLETCONNECT_DEEPLINK_CHOICE');
 };
 
 const AccountDetails = ({ accountDetailsDialogOpen, handleAccountDetailsDialogToggle, data }) => {
   const { logoutWalletConnector } = useWalletConnector();
 
-  const handleLogout = () => {
-    logoutWalletConnector();
+  const handleLogout = async () => {
+    // Close the dialog immediately, then cleanup connection state.
     handleAccountDetailsDialogToggle();
     resetLocalStorage();
+    try {
+      await logoutWalletConnector();
+    } catch (e) {
+      // ignore; UI should still fall back to connect
+    }
   };
 
   return (

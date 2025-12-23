@@ -12,7 +12,7 @@ import {
 import { ethers } from 'ethers';
 import Web3 from 'web3';
 
-//0 ropsten, 1 bsc
+// 0 sepolia, 1 bsc testnet
 let netid = 0;
 let provider = null;
 let walletconnect, injected, bsc;
@@ -39,14 +39,15 @@ let walletconnect, injected, bsc;
 //   },
 // ]
 
-//testnet
+// testnets
 const netlist = [
   {
-    chaind: 3,
-    rpcurl: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-    blockurl: 'https://ropsten.etherscan.io',
-    chainname: 'Ethereum Mainnet',
-    chainnetname: 'Ethereum Mainnet',
+    chaind: 11155111,
+    rpcurl: 'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    blockurl: 'https://sepolia.etherscan.io',
+    chainname: 'Sepolia Testnet',
+    chainnetname: 'Sepolia',
+    currencyName: 'Ether',
     chainsymbol: 'ETH',
     chaindecimals: 18,
   },
@@ -56,6 +57,7 @@ const netlist = [
     blockurl: 'https://testnet.bscscan.com/',
     chainname: 'BSC testnet',
     chainnetname: 'BSC testnet',
+    currencyName: 'BNB',
     chainsymbol: 'BNB',
     chaindecimals: 18,
   },
@@ -108,24 +110,57 @@ export function setNet(id) {
 }
 
 export function useWalletConnector() {
-  const { activate, deactivate } = useWeb3React();
+  const { activate, deactivate, connector } = useWeb3React();
   const [provider, setProvider] = useState({});
 
   const setupNetwork = async () => {
-    const provider = window.ethereum;
-    if (provider) {
+    const injectedProvider = window.ethereum;
+    if (injectedProvider?.request) {
+      const chainId = `0x${netlist[netid].chaind.toString(16)}`;
       try {
-        await provider.request({
+        await injectedProvider.request({
           method: 'wallet_switchEthereumChain',
           params: [
             {
-              chainId: `0x${netlist[netid].chaind.toString(16)}`,
+              chainId,
             },
           ],
         });
-        setProvider(provider);
+        setProvider(injectedProvider);
         return true;
       } catch (error) {
+        // 4902 = chain not added to wallet
+        if (error?.code === 4902) {
+          try {
+            await injectedProvider.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId,
+                  chainName: netlist[netid].chainname,
+                  rpcUrls: [netlist[netid].rpcurl],
+                  nativeCurrency: {
+                    name: netlist[netid].currencyName || netlist[netid].chainsymbol,
+                    symbol: netlist[netid].chainsymbol,
+                    decimals: netlist[netid].chaindecimals,
+                  },
+                  blockExplorerUrls: [netlist[netid].blockurl],
+                },
+              ],
+            });
+
+            await injectedProvider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId }],
+            });
+
+            setProvider(injectedProvider);
+            return true;
+          } catch (addError) {
+            console.error('Failed to add/switch chain', addError);
+            return false;
+          }
+        }
         return false;
       }
     } else {
@@ -176,10 +211,21 @@ export function useWalletConnector() {
   };
 
   const logoutWalletConnector = () => {
-    deactivate(provider, async (error) => {
-      console.log(error);
-      return false;
-    });
+    try {
+      // WalletConnect (and some other connectors) keep a persisted session.
+      // If we don't close it, the app can end up in a weird half-connected state.
+      connector?.close?.();
+
+      // web3-react v6 WalletConnectConnector stores the underlying provider here.
+      connector?.walletConnectProvider?.disconnect?.();
+      if (connector?.walletConnectProvider) {
+        connector.walletConnectProvider = null;
+      }
+    } catch (e) {
+      // best-effort cleanup; we still want to deactivate
+    }
+
+    deactivate();
     return true;
   };
 

@@ -19,11 +19,11 @@ const Authenticated = ({ library, account }) => {
   };
 
   useEffect(() => {
+    if (!library) return;
+
     getBalance();
 
-    if (library.provider) {
-      getChain();
-    }
+    if (library.provider) getChain();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [library, account]);

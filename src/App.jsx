@@ -25,7 +25,7 @@ const App = () => {
   const { library, account } = useWeb3React();
 
   useEffect(() => {
-    if (library) {
+    if (account) {
       localStorage.setItem('connected', true);
     }
   }, [library, account]);

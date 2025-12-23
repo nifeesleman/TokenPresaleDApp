@@ -77,7 +77,7 @@ const NetworkWalletProviders = ({
   };
 
   useEffect(() => {
-    if (library) {
+    if (account) {
       handleWalletProvidersDialogToggle();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,8 +267,7 @@ const NetworkWalletProviders = ({
       <DialogActions>
         <Button
           fullWidth
-          // onClick={handleConnectWallet}
-          onClick={handleOpen}
+          onClick={handleConnectWallet}
           disabled={!selectedNetwork || !selectedWallet}
         >
           Connect
